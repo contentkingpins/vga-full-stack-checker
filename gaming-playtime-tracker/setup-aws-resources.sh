@@ -91,6 +91,23 @@ aws ssm put-parameter \
   --overwrite \
   --region $REGION
 
+# Roblox credentials
+aws ssm put-parameter \
+  --name "/gaming-playtime/roblox-api-key" \
+  --type "SecureString" \
+  --value "YOUR_ROBLOX_API_KEY" \
+  --description "Roblox API Key for gaming-playtime-tracker" \
+  --overwrite \
+  --region $REGION
+
+aws ssm put-parameter \
+  --name "/gaming-playtime/roblox-api-secret" \
+  --type "SecureString" \
+  --value "YOUR_ROBLOX_API_SECRET" \
+  --description "Roblox API Secret for gaming-playtime-tracker" \
+  --overwrite \
+  --region $REGION
+
 echo "Parameter Store entries created successfully."
 
 echo "All AWS resources have been set up for $SERVICE_NAME."

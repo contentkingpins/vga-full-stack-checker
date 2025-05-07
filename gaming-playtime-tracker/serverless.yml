@@ -27,6 +27,8 @@ provider:
     EPIC_CLIENT_SECRET: ${ssm:/gaming-playtime/epic-client-secret, ''}
     NINTENDO_CLIENT_ID: ${ssm:/gaming-playtime/nintendo-client-id, ''}
     NINTENDO_CLIENT_SECRET: ${ssm:/gaming-playtime/nintendo-client-secret, ''}
+    ROBLOX_API_KEY: ${ssm:/gaming-playtime/roblox-api-key, ''}
+    ROBLOX_API_SECRET: ${ssm:/gaming-playtime/roblox-api-secret, ''}
     # Use DynamoDB cache in production
     USE_DYNAMO_CACHE: '1'
     CACHE_TTL: '300'
