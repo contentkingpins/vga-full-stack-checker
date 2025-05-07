@@ -1,135 +1,73 @@
-# AWS Deployment Instructions
+# AWS Amplify Deployment Guide
 
-This document outlines the steps required to deploy the Gaming Playtime Tracker application to AWS using the Serverless Framework.
+This guide outlines the steps to deploy the Gaming Playtime Tracker application to AWS Amplify.
 
 ## Prerequisites
 
-- Node.js 18.x or later
-- AWS CLI installed and configured with appropriate credentials
-- Serverless Framework installed (`npm install -g serverless`)
-- API keys for all gaming platforms:
-  - Steam API Key
-  - Riot Games API Key
-  - Xbox Live Client ID and Secret
-  - PlayStation Network API Key
-  - Epic Games Client ID and Secret
-  - Nintendo Client ID and Secret
+- AWS Account
+- GitHub repository with the application code
+- AWS Amplify Console access
 
 ## Deployment Steps
 
-### 1. Install dependencies
+1. **Connect Repository to Amplify**
 
-```bash
-cd gaming-playtime-tracker
-npm install
-```
+   - Go to the [AWS Amplify Console](https://console.aws.amazon.com/amplify/home)
+   - Choose "Connect app"
+   - Select GitHub as the repository source
+   - Authenticate and select your repository
+   - Select the main branch for deployment
 
-### 2. Set up AWS Parameter Store entries for API keys
+2. **Configure Build Settings**
 
-You can set up the required Parameter Store entries using the provided script:
+   Amplify should automatically detect the `amplify.yml` file in the repository. If not, use the following build settings:
 
-```bash
-# Make the script executable
-chmod +x setup-aws-resources.sh
+   ```yaml
+   version: 1
+   frontend:
+     phases:
+       preBuild:
+         commands:
+           - npm install --legacy-peer-deps
+       build:
+         commands:
+           - cd gaming-playtime-tracker
+           - npm run build
+     artifacts:
+       baseDirectory: gaming-playtime-tracker/.next
+       files:
+         - '**/*'
+     cache:
+       paths:
+         - node_modules/**/*
+         - gaming-playtime-tracker/node_modules/**/*
+   ```
 
-# Edit the script to replace placeholder API keys with your actual keys
-nano setup-aws-resources.sh
+3. **Configure Environment Variables**
 
-# Run the script
-./setup-aws-resources.sh
-```
+   In the Amplify Console, go to the "Environment variables" section and add the following variables:
 
-Alternatively, you can manually create the Parameter Store entries using the AWS Management Console:
+   - `STEAM_API_KEY`: Your Steam Web API key
+   - `RIOT_API_KEY`: Your Riot Games API key
+   - `XBOX_CLIENT_ID`: Your Xbox Live API client ID
+   - `XBOX_CLIENT_SECRET`: Your Xbox Live API client secret
 
-1. Navigate to AWS Systems Manager > Parameter Store
-2. Create the following SecureString parameters:
-   - `/gaming-playtime/steam-api-key`
-   - `/gaming-playtime/riot-api-key`
-   - `/gaming-playtime/xbox-client-id`
-   - `/gaming-playtime/xbox-client-secret`
-   - `/gaming-playtime/playstation-api-key`
-   - `/gaming-playtime/epic-client-id`
-   - `/gaming-playtime/epic-client-secret`
-   - `/gaming-playtime/nintendo-client-id`
-   - `/gaming-playtime/nintendo-client-secret`
+4. **Deploy the Application**
 
-### 3. Deploy the application using Serverless Framework
-
-```bash
-# Deploy to the dev stage (default)
-serverless deploy
-
-# Or deploy to a specific stage
-serverless deploy --stage production
-```
-
-This will deploy the following AWS resources:
-
-- API Gateway: Exposes the Next.js API routes as Lambda functions
-- Lambda Functions: Handles API requests with optimized cold start times
-- DynamoDB Tables:
-  - `gaming-playtime-tracker-{stage}-cache`: For persistent caching
-  - `gaming-playtime-tracker-{stage}-rate-limits`: For rate limiting
-- IAM Roles: With required permissions for Lambda and DynamoDB
-
-### 4. Set up CloudWatch Alarms (Optional)
-
-You can set up CloudWatch Alarms to monitor your application:
-
-1. Navigate to CloudWatch in the AWS Management Console
-2. Create alarms for:
-   - Lambda Error Rate
-   - API Gateway 4xx and 5xx Errors
-   - DynamoDB Throttling
-   - Lambda Duration (to monitor cold starts)
-
-Example CloudWatch alarm for Lambda errors:
-
-```bash
-aws cloudwatch put-metric-alarm \
-  --alarm-name "gaming-playtime-tracker-lambda-errors" \
-  --alarm-description "Alarm when Lambda function errors exceed threshold" \
-  --metric-name Errors \
-  --namespace AWS/Lambda \
-  --statistic Sum \
-  --period 60 \
-  --threshold 5 \
-  --comparison-operator GreaterThanOrEqualToThreshold \
-  --dimensions Name=FunctionName,Value=gaming-playtime-tracker-dev-api \
-  --evaluation-periods 1 \
-  --alarm-actions arn:aws:sns:us-east-1:123456789012:notify-me \
-  --region us-east-1
-```
-
-### 5. Verify Deployment
-
-Once deployed, you can verify that the application is running:
-
-1. Check the CloudFormation stack in the AWS Management Console
-2. Test the API endpoints using the provided URL from the Serverless Framework output
-3. Monitor the application using CloudWatch Logs and Metrics
+   - Review the settings and click "Save and deploy"
+   - Amplify will build and deploy your application
+   - Once deployment is complete, you can access your app via the provided URL
 
 ## Troubleshooting
 
-### Common Issues
+- If you encounter dependency issues during build, check that `--legacy-peer-deps` is included in the npm install command
+- For Next.js image optimization errors, ensure `images: { unoptimized: true }` is set in next.config.js
+- If API routes aren't working, make sure the output is set to 'export' in next.config.js
 
-1. **Missing API Keys**: Ensure all API keys are properly set in Parameter Store
-2. **Insufficient IAM Permissions**: Make sure your AWS user has sufficient permissions
-3. **Cold Start Performance**: Consider provisioned concurrency for production workloads
-4. **DynamoDB Capacity**: Monitor DynamoDB usage and adjust capacity if needed
+## Next Steps
 
-### Logs and Monitoring
+After deployment, consider setting up:
 
-- CloudWatch Logs: Check Lambda function logs for errors
-- CloudWatch Metrics: Monitor API Gateway, Lambda, and DynamoDB metrics
-- X-Ray Tracing: Enable X-Ray tracing for performance debugging
-
-## Clean Up
-
-To remove all deployed resources:
-
-```bash
-serverless remove
-```
-
-Note: This will delete all resources created by the Serverless Framework, including DynamoDB tables and their data. 
+- Custom domain mapping in the Amplify Console
+- HTTPS certificates (automatically handled by Amplify)
+- Monitoring and analytics for your application 
