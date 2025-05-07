@@ -2,12 +2,19 @@ service: gaming-playtime-tracker
 
 frameworkVersion: '3'
 
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
 provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
   memorySize: 1024
   stage: ${opt:stage, 'dev'}
+  tracing:
+    apiGateway: true
+    lambda: true
   environment:
     NODE_ENV: production
     # Configure these in AWS console or using secure parameters
@@ -36,6 +43,11 @@ provider:
           Resource: 
             - !GetAtt PlaytimeCache.Arn
             - !GetAtt RateLimiter.Arn
+        - Effect: Allow
+          Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+          Resource: "*"
 
 functions:
   api:
@@ -43,6 +55,7 @@ functions:
     events:
       - httpApi: '*'
     timeout: 30
+    provisionedConcurrency: ${self:custom.provisionedConcurrency.${self:provider.stage}, 0}
 
 resources:
   Resources:
@@ -80,4 +93,11 @@ custom:
   # Adjust these settings based on your requirements
   webpack:
     packager: 'npm'
-    includeModules: true 
+    includeModules: true
+  provisionedConcurrency:
+    dev: 0
+    staging: 5
+    production: 10
+  serverless-offline:
+    httpPort: 3000
+    noPrependStageInUrl: true 
