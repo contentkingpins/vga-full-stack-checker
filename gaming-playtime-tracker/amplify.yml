@@ -1,0 +1,17 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd gaming-playtime-tracker
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: gaming-playtime-tracker/.next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - gaming-playtime-tracker/node_modules/**/* 

@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Configure AWS Amplify deployment specifics
-  output: 'standalone',
+  // Configure deployment specifics
+  output: process.env.AWS_AMPLIFY ? 'export' : 'standalone',
   // Configure CORS headers
   async headers() {
     return [
@@ -17,6 +17,8 @@ const nextConfig = {
       },
     ];
   },
+  // Disable server-side image optimization when using export
+  images: process.env.AWS_AMPLIFY ? { unoptimized: true } : {},
 };
 
 module.exports = nextConfig; 
