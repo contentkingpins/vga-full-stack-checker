@@ -34,7 +34,6 @@ export async function getRobloxPlaytime(robloxId: string): Promise<RobloxRespons
   try {
     // Get API credentials from environment variables
     const apiKey = process.env.ROBLOX_API_KEY;
-    const apiSecret = process.env.ROBLOX_API_SECRET;
     
     if (!apiKey) {
       return {
@@ -47,8 +46,7 @@ export async function getRobloxPlaytime(robloxId: string): Promise<RobloxRespons
     // This would be the actual API call in a real implementation
     // const response = await axios.get(`https://apis.roblox.com/user-playtime/v1/users/${robloxId}/games`, {
     //   headers: {
-    //     'x-api-key': apiKey,
-    //     'Authorization': `Bearer ${apiSecret}`
+    //     'x-api-key': apiKey
     //   }
     // });
     
