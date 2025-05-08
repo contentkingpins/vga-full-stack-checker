@@ -24,8 +24,10 @@ const nextConfig = {
   env: {
     ROBLOX_API_KEY: process.env.ROBLOX_API_KEY,
   },
+ fix-next-config
   // Disable server-side image optimization for static deployment
   images: { unoptimized: true },
+ main
  main
 };
 
