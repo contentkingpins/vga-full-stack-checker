@@ -1,91 +1,52 @@
 # Gaming Playtime Tracker
 
-A full-stack web application that allows gamers to track their playtime across multiple gaming platforms in one place.
+A web application that displays gaming hours played across multiple platforms.
 
-## Features
+## Deployment
 
-- **Multi-platform Integration**: Track gaming time across multiple platforms:
-  - Steam
-  - Riot Games (League of Legends, Valorant)
-  - Xbox Live
-  - PlayStation Network
-  - Epic Games
-  - Nintendo
+This application is configured for deployment on AWS Amplify.
 
-- **Simple Interface**: Enter your gaming identifiers (Steam ID, Riot PUUID, Xbox Gamertag, etc.) and instantly see your playtime across all platforms.
+### AWS Amplify Setup
 
-- **Serverless Architecture**: Built on AWS serverless infrastructure for high availability and scalability.
+1. Connect your GitHub repository to AWS Amplify
+2. Use the included `amplify.yml` configuration file
+3. The application is configured for static export deployment with Next.js
 
-- **Responsive Design**: Mobile-friendly interface that works well on all devices.
+### Environment Variables
 
-## Tech Stack
+The following environment variables should be configured in the AWS Amplify console:
 
-- **Frontend**: Next.js 14, React, Tailwind CSS
-- **Backend**: Node.js, Serverless Framework
-- **Infrastructure**: AWS Amplify, Lambda, API Gateway, DynamoDB
+- `STEAM_API_KEY`: Your Steam Web API key
+- `RIOT_API_KEY`: Your Riot Games API key
+- `XBOX_CLIENT_ID`: Your Xbox Live API client ID
+- `XBOX_CLIENT_SECRET`: Your Xbox Live API client secret
 
-## Development Setup
+## Local Development
 
-### Prerequisites
-
-- Node.js 18.x or later
-- npm or yarn
-- AWS CLI installed and configured (for deployment only)
-
-### Local Development
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## AWS Infrastructure
-
-This project is optimized for AWS deployment with the following components:
-
-- **API Gateway**: Exposes the Next.js API routes as Lambda functions
-- **Lambda Functions**: Handles API requests with optimized cold start times
-- **DynamoDB**: Used for persistent caching and rate limiting in production
-- **CloudWatch**: Monitoring and logging for all AWS resources
-- **Parameter Store**: Securely stores API keys for the various gaming platforms
-
-For detailed deployment instructions, see the [AWS Deployment Instructions](./docs/aws-deployment.md).
-
-## Environment Variables
-
-The following environment variables are required:
-
-- `STEAM_API_KEY`: API key for Steam Web API
-- `RIOT_API_KEY`: API key for Riot Games API
-- `XBOX_CLIENT_ID`: Client ID for Xbox Live API
-- `XBOX_CLIENT_SECRET`: Client Secret for Xbox Live API
-- `PLAYSTATION_API_KEY`: API key for PlayStation Network
-- `EPIC_CLIENT_ID`: Client ID for Epic Games API
-- `EPIC_CLIENT_SECRET`: Client Secret for Epic Games API
-- `NINTENDO_CLIENT_ID`: Client ID for Nintendo API
-- `NINTENDO_CLIENT_SECRET`: Client Secret for Nintendo API
-
-In production, these are stored in AWS Parameter Store and accessed via the serverless.yml configuration.
-
-## Testing
-
-Run unit tests:
 ```bash
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
 npm test
 ```
 
-Run end-to-end tests:
-```bash
-npm run test:e2e
-```
+## Features
 
-## License
+- Fetch game playtime data from multiple platforms
+- Responsive design for mobile and desktop
+- Caching system for API responses
+- Rate limiting to prevent API abuse
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+## Supported Platforms
+
+- Steam (fully supported)
+- Riot Games (League of Legends)
+- Xbox Live (partner access)
+- PlayStation, Epic Games, Nintendo (informational only) 
