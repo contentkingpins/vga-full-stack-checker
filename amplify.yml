@@ -3,9 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm install
+        - npm install --legacy-peer-deps
     build:
       commands:
+        - cd gaming-playtime-tracker
         - npm run build
   artifacts:
     baseDirectory: gaming-playtime-tracker/.next

@@ -7,11 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "jest",
-    "test:e2e": "cypress run",
-    "deploy": "serverless deploy",
-    "deploy:prod": "serverless deploy --stage production",
-    "remove": "serverless remove",
-    "setup:aws": "chmod +x ./setup-aws-resources.sh && ./setup-aws-resources.sh"
+    "test:e2e": "cypress run"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +27,9 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+
     "@tailwindcss/postcss": "^4.1.5",
+
     "@types/cypress": "^0.1.6",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.14",
@@ -39,9 +37,11 @@
     "autoprefixer": "^10.4.21",
     "cypress": "^14.3.3",
     "postcss": "^8.5.3",
+
     "serverless": "^3.36.0",
     "serverless-offline": "^12.0.4",
     "serverless-webpack": "^5.13.0",
+
     "tailwindcss": "^4.1.5"
   }
 }
