@@ -19,6 +19,10 @@ const nextConfig = {
   },
   // Disable server-side image optimization when using export
   images: process.env.AWS_AMPLIFY ? { unoptimized: true } : {},
+  // Add environment variables to be available at runtime
+  env: {
+    ROBLOX_API_KEY: process.env.ROBLOX_API_KEY,
+  },
 };
 
 module.exports = nextConfig; 
