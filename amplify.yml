@@ -8,7 +8,6 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
-        - cd gaming-playtime-tracker
         - export AWS_AMPLIFY=true
         - npm run build
   artifacts:
