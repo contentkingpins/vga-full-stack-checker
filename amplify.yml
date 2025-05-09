@@ -4,9 +4,12 @@ frontend:
     preBuild:
       commands:
         - npm install --legacy-peer-deps
+        - cd gaming-playtime-tracker
+        - npm install --legacy-peer-deps
     build:
       commands:
         - cd gaming-playtime-tracker
+        - export AWS_AMPLIFY=true
         - npm run build
   artifacts:
     baseDirectory: gaming-playtime-tracker/.next

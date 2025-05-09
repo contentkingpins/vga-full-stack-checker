@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Configure deployment specifics
-  output: process.env.AWS_AMPLIFY ? 'export' : 'standalone',
+  // Remove the static export for Amplify deployment and use the default Next.js server
+  // This allows API routes to work properly
+  distDir: '.next',
   // Configure CORS headers
   async headers() {
     return [
@@ -17,8 +18,11 @@ const nextConfig = {
       },
     ];
   },
-  // Disable server-side image optimization when using export
-  images: process.env.AWS_AMPLIFY ? { unoptimized: true } : {},
+  // Adjust image settings to work correctly in Amplify environment
+  images: {
+    unoptimized: process.env.AWS_AMPLIFY === 'true',
+    domains: ['cdn.cloudflare.steamstatic.com'],
+  },
 };
 
 module.exports = nextConfig; 
