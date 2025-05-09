@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 
 // Mock data to show when API is unavailable
@@ -23,13 +23,63 @@ const MOCK_GAME_DATA = {
   ]
 };
 
+// Additional mock data for other platforms
+const PLATFORM_MOCK_DATA = {
+  steam: MOCK_GAME_DATA,
+  riot: {
+    success: true,
+    supported: true,
+    games: [
+      {
+        id: 'lol',
+        name: 'League of Legends',
+        hoursPlayed: 342.8,
+        coverArt: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg',
+        platform: 'riot'
+      },
+      {
+        id: 'val',
+        name: 'Valorant',
+        hoursPlayed: 128.5,
+        coverArt: 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg',
+        platform: 'riot'
+      }
+    ]
+  },
+  xbox: {
+    success: true,
+    supported: true,
+    games: [
+      {
+        id: 'halo',
+        name: 'Halo Infinite',
+        hoursPlayed: 87.3,
+        coverArt: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg',
+        platform: 'xbox'
+      },
+      {
+        id: 'forza',
+        name: 'Forza Horizon 5',
+        hoursPlayed: 112.9,
+        coverArt: 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg',
+        platform: 'xbox'
+      }
+    ]
+  }
+};
+
 export default function Home() {
   const [platform, setPlatform] = useState('steam');
   const [userIdentifier, setUserIdentifier] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [gameData, setGameData] = useState(null);
+  const [gameData, setGameData] = useState(MOCK_GAME_DATA);
   const [error, setError] = useState('');
-  const [useMockData, setUseMockData] = useState(false);
+  const [useMockData, setUseMockData] = useState(true);
+
+  // Load initial mock data
+  useEffect(() => {
+    setGameData(MOCK_GAME_DATA);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,29 +93,21 @@ export default function Home() {
     setError('');
     
     try {
-      // Attempt to fetch data from API
-      const response = await fetch(`/api/${platform}/playtime/${userIdentifier}`);
+      // In static export mode, always use mock data
+      // This simulates getting data from different platforms
+      const mockDataForPlatform = PLATFORM_MOCK_DATA[platform] || MOCK_GAME_DATA;
       
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        setError(data.reason || 'Failed to fetch game data');
-        setGameData(null);
-      } else {
-        setGameData(data);
+      setTimeout(() => {
+        setGameData(mockDataForPlatform);
         setError('');
-        setUseMockData(false);
-      }
+        setUseMockData(true);
+        setIsLoading(false);
+      }, 1000); // Simulate network delay
     } catch (err) {
-      console.error('API request error:', err);
-      setError('API is unavailable. Showing mock data instead.');
+      console.error('Error:', err);
+      setError('An error occurred. Showing mock data instead.');
       setGameData(MOCK_GAME_DATA);
       setUseMockData(true);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -153,6 +195,7 @@ export default function Home() {
           <div className="mt-8">
             <h2 className="text-2xl font-bold mb-4">
               {useMockData ? 'Demo Data' : 'Your Games'}
+              <span className="ml-2 text-sm text-gray-500 font-normal">(Static Demo Mode)</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {gameData.games.map(game => (
