@@ -3,9 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm ci --legacy-peer-deps
     build:
       commands:
+        - export AWS_AMPLIFY=true
         - npm run build
   artifacts:
     baseDirectory: .next

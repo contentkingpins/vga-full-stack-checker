@@ -1,12 +1,35 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 
+// Mock data to show when API is unavailable
+const MOCK_GAME_DATA = {
+  success: true,
+  supported: true,
+  games: [
+    {
+      id: '570',
+      name: 'Dota 2',
+      hoursPlayed: 156.7,
+      coverArt: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg',
+      platform: 'steam'
+    },
+    {
+      id: '730',
+      name: 'Counter-Strike 2',
+      hoursPlayed: 273.2,
+      coverArt: 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg',
+      platform: 'steam'
+    }
+  ]
+};
+
 export default function Home() {
   const [platform, setPlatform] = useState('steam');
   const [userIdentifier, setUserIdentifier] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [gameData, setGameData] = useState(null);
   const [error, setError] = useState('');
+  const [useMockData, setUseMockData] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +43,13 @@ export default function Home() {
     setError('');
     
     try {
+      // Attempt to fetch data from API
       const response = await fetch(`/api/${platform}/playtime/${userIdentifier}`);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (!data.success) {
@@ -29,13 +58,23 @@ export default function Home() {
       } else {
         setGameData(data);
         setError('');
+        setUseMockData(false);
       }
     } catch (err) {
-      setError('An error occurred while fetching game data');
-      setGameData(null);
+      console.error('API request error:', err);
+      setError('API is unavailable. Showing mock data instead.');
+      setGameData(MOCK_GAME_DATA);
+      setUseMockData(true);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to load mock data directly
+  const loadMockData = () => {
+    setGameData(MOCK_GAME_DATA);
+    setUseMockData(true);
+    setError('');
   };
 
   return (
@@ -90,22 +129,54 @@ export default function Home() {
               </div>
             )}
             
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {isLoading ? 'Loading...' : 'Track Playtime'}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                {isLoading ? 'Loading...' : 'Track Playtime'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={loadMockData}
+                className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Show Demo Data
+              </button>
+            </div>
           </form>
         </div>
         
-        {gameData && (
+        {gameData && gameData.games && (
           <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Your Games</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {useMockData ? 'Demo Data' : 'Your Games'}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Game cards would be rendered here */}
-              <p className="text-gray-700">Game data loaded successfully.</p>
+              {gameData.games.map(game => (
+                <div key={game.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="h-32 bg-gray-200 relative">
+                    {game.coverArt ? (
+                      <img 
+                        src={game.coverArt} 
+                        alt={game.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-gray-500">No image available</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold">{game.name}</h3>
+                    <p className="text-gray-700">Played for {game.hoursPlayed} hours</p>
+                    <p className="text-sm text-gray-500 mt-2">Platform: {game.platform}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
