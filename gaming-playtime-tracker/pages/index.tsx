@@ -95,10 +95,20 @@ export default function Home() {
     try {
       // In static export mode, always use mock data
       // This simulates getting data from different platforms
-      const mockDataForPlatform = PLATFORM_MOCK_DATA[platform] || MOCK_GAME_DATA;
+      let mockDataForPlatform = PLATFORM_MOCK_DATA[platform] || MOCK_GAME_DATA;
+      
+      // Add a personalization touch based on the entered userIdentifier
+      let customizedMockData = {
+        ...mockDataForPlatform,
+        games: mockDataForPlatform.games.map(game => ({
+          ...game,
+          // Add small random variation to hours based on username length
+          hoursPlayed: +(game.hoursPlayed + (userIdentifier.length % 10) * 0.7).toFixed(1)
+        }))
+      };
       
       setTimeout(() => {
-        setGameData(mockDataForPlatform);
+        setGameData(customizedMockData);
         setError('');
         setUseMockData(true);
         setIsLoading(false);
@@ -195,7 +205,9 @@ export default function Home() {
           <div className="mt-8">
             <h2 className="text-2xl font-bold mb-4">
               {useMockData ? 'Demo Data' : 'Your Games'}
-              <span className="ml-2 text-sm text-gray-500 font-normal">(Static Demo Mode)</span>
+              <span className="ml-2 text-sm text-gray-500 font-normal">
+                (Static Demo Mode{userIdentifier ? ` for ${userIdentifier}` : ''})
+              </span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {gameData.games.map(game => (
