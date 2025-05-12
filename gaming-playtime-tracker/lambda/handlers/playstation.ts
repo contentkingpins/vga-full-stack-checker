@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getPlaystationPlaytime } from '../../lib/adapters/playstationAdapter';
+import { getPlayStationPlaytime } from '../../lib/adapters/playstationAdapter';
 import { DynamoRateLimiter } from '../utils/rateLimiter';
 import { successResponse, errorResponse } from '../utils/response';
 
@@ -28,7 +28,7 @@ export const handler = async (
       return errorResponse(400, 'Invalid PlayStation ID provided');
     }
 
-    const playtimeData = await getPlaystationPlaytime(playstationId);
+    const playtimeData = await getPlayStationPlaytime(playstationId);
     
     return successResponse(playtimeData);
   } catch (error) {
