@@ -11,7 +11,7 @@ frontend:
         - export AWS_AMPLIFY=true
         - npm run build
   artifacts:
-    baseDirectory: gaming-playtime-tracker/.next
+    baseDirectory: gaming-playtime-tracker/out
     files:
       - '**/*'
   cache:
@@ -24,6 +24,6 @@ frontend:
         - key: 'Cache-Control'
           value: 'public, max-age=0, must-revalidate'
   redirects:
-    - source: '/<*>'
+    - source: '</^[^.]+$|\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json)$)([^.]+$)/>'
       target: '/index.html'
       status: '200' 

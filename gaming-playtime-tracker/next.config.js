@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   // Configure for Amplify static hosting
   output: 'export',
-  distDir: '.next',
+  distDir: 'out',
   // Disable API routes when exporting
   trailingSlash: true,
   // API routes won't work in export mode, so all API calls 
