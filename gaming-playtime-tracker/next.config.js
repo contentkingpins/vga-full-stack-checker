@@ -7,21 +7,8 @@ const nextConfig = {
   // Disable API routes when exporting
   trailingSlash: true,
   // API routes won't work in export mode, so all API calls 
-  // will need to be handled by client-side mock data
-  // Configure CORS headers
-  async headers() {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
-        ],
-      },
-    ];
-  },
+  // will need to be handled by our Lambda functions
+  
   // Adjust image settings to work correctly in Amplify environment
   images: {
     unoptimized: true,
