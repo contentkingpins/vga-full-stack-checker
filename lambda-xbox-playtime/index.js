@@ -52,33 +52,37 @@ async function isRateLimited(key, tableName, windowMs = 60000, maxRequests = 10)
 // Xbox API integration
 async function getXboxPlaytime(xboxId) {
   try {
-    // For demo purposes - in a real implementation, you would:
-    // 1. Call the Xbox API using the XBOX_API_KEY environment variable
-    // 2. Process and transform the response
-    // 3. Handle error cases from the Xbox API
+    // Get API key from environment variable
+    const apiKey = process.env.XBOX_API_KEY;
     
-    // Example of how you'd make a real API call:
-    // const apiKey = process.env.XBOX_API_KEY;
-    // const response = await axios.get(
-    //   `https://xboxapi.com/v2/${xboxId}/gamesplayed`,
-    //   {
-    //     headers: { 'X-AUTH': apiKey }
-    //   }
-    // );
+    if (!apiKey) {
+      throw new Error('XBOX_API_KEY environment variable is not set');
+    }
     
-    // For now, still returning mock data but logging that we would make a real call
-    console.log(`Would call Xbox API for user ${xboxId} with key ${process.env.XBOX_API_KEY}`);
+    // Make the actual API call to Xbox
+    const response = await axios.get(
+      `https://xboxapi.com/v2/${xboxId}/gamesplayed`,
+      {
+        headers: { 'X-AUTH': apiKey }
+      }
+    );
+    
+    // Process the response from Xbox API
+    // This structure depends on the actual Xbox API response format
+    // Adjust this according to the actual API documentation
+    const games = response.data.map(game => ({
+      name: game.title,
+      playtime: Math.floor(game.minutes_played || 0)
+    }));
+    
+    // Calculate total playtime
+    const totalPlaytime = games.reduce((total, game) => total + game.playtime, 0);
     
     return {
       success: true,
       xboxId: xboxId,
-      totalPlaytime: 987,
-      games: [
-        { name: "Halo Infinite", playtime: 230 },
-        { name: "Forza Horizon 5", playtime: 185 },
-        { name: "Sea of Thieves", playtime: 150 },
-        { name: "Minecraft", playtime: 422 }
-      ]
+      totalPlaytime: totalPlaytime,
+      games: games
     };
   } catch (error) {
     console.error('Error fetching Xbox data:', error);
