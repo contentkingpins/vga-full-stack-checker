@@ -1,0 +1,13 @@
+{
+  "name": "lambda-playstation-playtime",
+  "version": "1.0.0",
+  "description": "AWS Lambda function to fetch PlayStation playtime data",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1033.0",
+    "axios": "^0.24.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
