@@ -49,43 +49,84 @@ async function isRateLimited(key, tableName, windowMs = 60000, maxRequests = 10)
   }
 }
 
-// Xbox API integration
-async function getXboxPlaytime(xboxId) {
+// PlayStation API integration
+async function getPlayStationPlaytime(psn) {
   try {
     // Get API key from environment variable
-    const apiKey = process.env.XBOX_API_KEY;
+    const apiKey = process.env.PLAYSTATION_API_KEY;
     
     if (!apiKey) {
-      throw new Error('XBOX_API_KEY environment variable is not set');
+      throw new Error('PLAYSTATION_API_KEY environment variable is not set');
     }
-    
-    // Make the actual API call to Xbox
-    const response = await axios.get(
-      `https://xboxapi.com/v2/${xboxId}/gamesplayed`,
+
+    // PlayStation Network API requires a bearer token for authentication
+    // First, get the authentication token
+    const authResponse = await axios.post(
+      'https://ca.account.sony.com/api/authz/v3/oauth/token',
       {
-        headers: { 'X-AUTH': apiKey }
+        grant_type: 'authorization_code',
+        client_id: apiKey
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       }
     );
     
-    // Process the response from Xbox API
-    // This structure depends on the actual Xbox API response format
-    // Adjust this according to the actual API documentation
-    const games = response.data.map(game => ({
-      name: game.title,
-      playtime: Math.floor(game.minutes_played || 0)
-    }));
+    const accessToken = authResponse.data.access_token;
+    
+    // Make the actual API call to PlayStation to get recently played games
+    const response = await axios.get(
+      `https://m.np.playstation.com/api/trophy/v1/users/${psn}/trophies/earned`,
+      {
+        headers: { 
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    // Process the response from PlayStation API
+    // This structure depends on the actual PlayStation API response format
+    // We estimate playtime based on trophy data since PSN doesn't have direct playtime API
+    const trophyGroups = response.data.trophyGroups || [];
+    const games = trophyGroups.map(game => {
+      // Estimate playtime based on number of trophies earned
+      // This is just an estimate since PSN doesn't provide exact playtime
+      const bronzeTrophies = game.earnedTrophies?.bronze || 0;
+      const silverTrophies = game.earnedTrophies?.silver || 0;
+      const goldTrophies = game.earnedTrophies?.gold || 0;
+      const platinumTrophies = game.earnedTrophies?.platinum || 0;
+      
+      // Weight different trophy types differently to estimate hours
+      const estimatedHours = (
+        bronzeTrophies * 0.5 + 
+        silverTrophies * 2 + 
+        goldTrophies * 5 + 
+        platinumTrophies * 20
+      );
+      
+      return {
+        name: game.trophyTitleName || 'Unknown Game',
+        playtime: Math.floor(estimatedHours) // Convert to hours
+      };
+    });
+    
+    // Filter out games with zero playtime
+    const gamesWithPlaytime = games.filter(game => game.playtime > 0);
     
     // Calculate total playtime
-    const totalPlaytime = games.reduce((total, game) => total + game.playtime, 0);
+    const totalPlaytime = gamesWithPlaytime.reduce((total, game) => total + game.playtime, 0);
     
     return {
       success: true,
-      xboxId: xboxId,
+      psnId: psn,
       totalPlaytime: totalPlaytime,
-      games: games
+      games: gamesWithPlaytime
     };
   } catch (error) {
-    console.error('Error fetching Xbox data:', error);
+    console.error('Error fetching PlayStation data:', error);
     throw error;
   }
 }
@@ -100,7 +141,7 @@ exports.handler = async (event) => {
   
   try {
     // Check rate limit
-    const isLimited = await isRateLimited(`xbox:${clientIp}`, tableName);
+    const isLimited = await isRateLimited(`playstation:${clientIp}`, tableName);
     
     if (isLimited) {
       return {
@@ -116,10 +157,10 @@ exports.handler = async (event) => {
       };
     }
 
-    // Get xboxId from path parameters
-    const xboxId = event.pathParameters?.xboxId;
+    // Get PSN ID from path parameters
+    const psnId = event.pathParameters?.psnId;
     
-    if (!xboxId) {
+    if (!psnId) {
       return {
         statusCode: 400,
         headers: {
@@ -128,13 +169,13 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           success: false, 
-          reason: 'Invalid Xbox ID provided'
+          reason: 'Invalid PlayStation Network ID provided'
         })
       };
     }
 
     // Get playtime data
-    const playtimeData = await getXboxPlaytime(xboxId);
+    const playtimeData = await getPlayStationPlaytime(psnId);
     
     // Return successful response
     return {

@@ -32,8 +32,7 @@ export async function getPlayStationPlaytime(psnId: string): Promise<PlayStation
   }
   
   try {
-    // In a real implementation, this would call the PlayStation Network API with your API credentials
-    // For demo purposes, this is a mock implementation
+    // Get API key from environment variable
     const apiKey = process.env.PLAYSTATION_API_KEY;
     
     if (!apiKey) {
@@ -44,33 +43,96 @@ export async function getPlayStationPlaytime(psnId: string): Promise<PlayStation
       };
     }
     
-    // This would be the actual API call in a real implementation
-    // const response = await axios.get(`https://psn-api.io/users/${psnId}/trophies`, {
-    //   headers: { 'Authorization': `Bearer ${apiKey}` }
-    // });
-    
-    // Mock data for demonstration
-    const mockGames: PlayStationGame[] = [
+    // PlayStation Network API requires OAuth 2.0 authentication
+    // First, get the authentication token
+    const authResponse = await axios.post(
+      'https://ca.account.sony.com/api/authz/v3/oauth/token',
       {
-        id: 'god-of-war-ragnarok',
-        name: 'God of War Ragnarök',
-        hoursPlayed: 42.8,
-        coverArt: 'https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/4xJ8XB3bi888QTLZYdl7Oi0s.png',
-        platform: 'playstation'
+        grant_type: 'authorization_code',
+        client_id: apiKey
       },
       {
-        id: 'horizon-forbidden-west',
-        name: 'Horizon Forbidden West',
-        hoursPlayed: 67.3,
-        coverArt: 'https://image.api.playstation.com/vulcan/ap/rnd/202107/3100/HO8vkR9dQM7mJZ5nb9lK3eFj.png',
-        platform: 'playstation'
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       }
-    ];
+    );
+    
+    const accessToken = authResponse.data.access_token;
+    
+    if (!accessToken) {
+      return {
+        success: false,
+        supported: true,
+        reason: 'Failed to authenticate with PlayStation Network'
+      };
+    }
+    
+    // Get trophy data to estimate playtime
+    const trophyResponse = await axios.get(
+      `https://m.np.playstation.com/api/trophy/v1/users/${psnId}/trophies/earned`,
+      {
+        headers: { 
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    // Process trophy data
+    const trophyGroups = trophyResponse.data.trophyGroups || [];
+    const games: PlayStationGame[] = [];
+    
+    // Convert trophy data to estimated playtime
+    for (const group of trophyGroups) {
+      // Get game details including cover art if available
+      let coverArt = '';
+      try {
+        const gameDetailsResponse = await axios.get(
+          `https://m.np.playstation.com/api/trophy/v1/npCommunicationIds/${group.npCommunicationId}/trophyTitles`,
+          {
+            headers: { 
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        coverArt = gameDetailsResponse.data.trophyTitleDetail?.trophyTitleIconUrl || '';
+      } catch (error) {
+        console.error(`Error fetching game details for ${group.trophyTitleName}:`, error);
+      }
+      
+      // Calculate estimated playtime based on trophies
+      const bronzeTrophies = group.earnedTrophies?.bronze || 0;
+      const silverTrophies = group.earnedTrophies?.silver || 0;
+      const goldTrophies = group.earnedTrophies?.gold || 0;
+      const platinumTrophies = group.earnedTrophies?.platinum || 0;
+      
+      // Weight different trophy types differently to estimate hours
+      const estimatedHours = (
+        bronzeTrophies * 0.5 + 
+        silverTrophies * 2 + 
+        goldTrophies * 5 + 
+        platinumTrophies * 20
+      );
+      
+      // Only add games with trophies
+      if (bronzeTrophies + silverTrophies + goldTrophies + platinumTrophies > 0) {
+        games.push({
+          id: group.npCommunicationId || `psn-${games.length}`,
+          name: group.trophyTitleName || 'Unknown Game',
+          hoursPlayed: parseFloat(estimatedHours.toFixed(1)),
+          coverArt: coverArt,
+          platform: 'playstation'
+        });
+      }
+    }
     
     const result: PlayStationResponse = {
       success: true,
       supported: true,
-      games: mockGames
+      games: games
     };
     
     // Cache the result
